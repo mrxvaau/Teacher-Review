@@ -144,6 +144,7 @@ Currently implemented as a full-stack application with a PostgreSQL database, fe
 ---
 
 ## **Project Structure**
+
 ├── client/ # React frontend
 │ ├── src/
 │ │ ├── components/ # UI components
@@ -156,7 +157,6 @@ Currently implemented as a full-stack application with a PostgreSQL database, fe
 │ └── vite.ts # Dev server setup
 ├── shared/ # Shared types and schemas
 └── migrations/ # Database migrations
-
 
 ---
 
