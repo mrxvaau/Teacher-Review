@@ -1,16 +1,21 @@
+// TEMPORARY MOCK DB FOR LOCAL TESTING
 
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import * as schema from "@shared/schema";
+// Commented out real imports
+// import { Pool } from 'pg';
+// import { drizzle } from 'drizzle-orm/node-postgres';
+// import * as schema from "@shared/schema";
 
-if (!process.env.DATABASE_URL) {
-    throw new Error(
-        "DATABASE_URL must be set. Did you forget to provision a database?",
-    );
-}
+// Use mock values to avoid crash
+const fakeDb = {
+  query: async () => {
+    console.warn("⚠️ Fake DB query used.");
+    return [];
+  },
+  // Add other mocks if needed
+};
 
-export const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: false // Since we're using local PostgreSQL
-});
-export const db = drizzle(pool, { schema });
+console.warn("🚫 Skipping real DB connection. Using mock DB for local dev.");
+
+// Export fake DB
+export const pool = null;
+export const db = fakeDb;
