@@ -8,7 +8,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { RatingSlider } from "@/components/rating-slider";
 import { RatingHistory } from "@/components/rating-history";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Teacher, Faculty, University, Review } from "@shared/schema";
+import { Teacher, Faculty, University } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,24 +33,25 @@ export default function Teachers() {
         queryKey: ["/api/faculties", facultyId, "teachers"],
     });
 
-    const faculty = faculties?.find(f => f.id === facultyId);
-    const university = universities?.find(u => u.id === faculty?.universityId);
+    const faculty = faculties?.find((f) => f.id === facultyId);
+    const university = universities?.find((u) => u.id === faculty?.universityId);
 
     const reviewMutation = useMutation({
-        mutationFn: async (reviewData: { teacherId: number; rating: number; comment: string }) => {
-            return await apiRequest(`/api/reviews`, {
-                method: "POST",
-                body: JSON.stringify(reviewData),
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
+        mutationFn: async (reviewData: {
+            teacherId: number;
+            rating: number;
+            comment: string;
+        }) => {
+            return await apiRequest("POST", "/api/reviews", reviewData);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["/api/faculties", facultyId, "teachers"] });
+            queryClient.invalidateQueries({
+                queryKey: ["/api/faculties", facultyId, "teachers"],
+            });
             toast({
                 title: "Review Submitted",
-                description: "Thank you for your review! Your feedback helps other students.",
+                description:
+                    "Thank you for your review! Your feedback helps other students.",
             });
         },
         onError: () => {
@@ -72,15 +73,25 @@ export default function Teachers() {
 
     const generateStarRating = (rating: number) => {
         const stars = [];
-        const fullStars = Math.floor(rating / 20); // Convert from 0-100 to 0-5
-        const hasHalfStar = (rating % 20) >= 10;
+        const fullStars = Math.floor(rating / 20);
+        const hasHalfStar = rating % 20 >= 10;
 
         for (let i = 0; i < fullStars; i++) {
-            stars.push(<Star key={`full-${i}`} className="h-4 w-4 fill-yellow-400 text-yellow-400" />);
+            stars.push(
+                <Star
+                    key={`full-${i}`}
+                    className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                />
+            );
         }
 
         if (hasHalfStar) {
-            stars.push(<StarHalf key="half" className="h-4 w-4 fill-yellow-400 text-yellow-400" />);
+            stars.push(
+                <StarHalf
+                    key="half"
+                    className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                />
+            );
         }
 
         const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
@@ -92,11 +103,11 @@ export default function Teachers() {
     };
 
     const handleRatingChange = (teacherId: number, rating: number) => {
-        setRatings(prev => ({ ...prev, [teacherId]: rating }));
+        setRatings((prev) => ({ ...prev, [teacherId]: rating }));
     };
 
     const handleCommentChange = (teacherId: number, comment: string) => {
-        setComments(prev => ({ ...prev, [teacherId]: comment }));
+        setComments((prev) => ({ ...prev, [teacherId]: comment }));
     };
 
     const submitReview = (teacherId: number) => {
@@ -112,20 +123,14 @@ export default function Teachers() {
             return;
         }
 
-        reviewMutation.mutate({
-            teacherId,
-            rating,
-            comment,
-        });
+        reviewMutation.mutate({ teacherId, rating, comment });
 
-        // Clear form
-        setRatings(prev => ({ ...prev, [teacherId]: 5 }));
-        setComments(prev => ({ ...prev, [teacherId]: "" }));
+        setRatings((prev) => ({ ...prev, [teacherId]: 5 }));
+        setComments((prev) => ({ ...prev, [teacherId]: "" }));
     };
 
     return (
         <div className="min-h-screen bg-neutral">
-            {/* Header */}
             <header className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center py-4">
@@ -133,37 +138,40 @@ export default function Teachers() {
                             <GraduationCap className="text-primary text-2xl" />
                             <h1 className="text-2xl font-bold text-gray-900">Teacher Review BD</h1>
                         </div>
-                        <div className="flex items-center space-x-4">
-                            <span className="text-sm text-secondary">Rate • Review • Discover</span>
-                        </div>
+                        <span className="text-sm text-secondary">Rate • Review • Discover</span>
                     </div>
                 </div>
             </header>
 
-            {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <Breadcrumb items={[
-                    { label: "Private Universities", href: "/universities" },
-                    { label: university.name, href: `/faculties/${university.id}` },
-                    { label: faculty.name }
-                ]} />
+                <Breadcrumb
+                    items={[
+                        { label: "Private Universities", href: "/universities" },
+                        { label: university.name, href: `/faculties/${university.id}` },
+                        { label: faculty.name },
+                    ]}
+                />
 
                 <div className="space-y-8">
                     <div className="text-center">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Faculty Teachers</h2>
-                        <p className="text-lg text-secondary mb-8">Rate and review teachers to help fellow students</p>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                            Faculty Teachers
+                        </h2>
+                        <p className="text-lg text-secondary mb-8">
+                            Rate and review teachers to help fellow students
+                        </p>
                     </div>
 
                     <div className="space-y-6">
                         {facultyTeachers?.map((teacher) => {
-                            const ratingHistory = [8, 9, 7, 8, 9, 8, 7, 9, 8, 8]; // Mock rating history for now
+                            const ratingHistory = [8, 9, 7, 8, 9, 8, 7, 9, 8, 8];
                             const currentRating = ratings[teacher.id] || 5;
                             const currentComment = comments[teacher.id] || "";
+                            const safeAverage = teacher.averageRating ?? 0;
 
                             return (
                                 <Card key={teacher.id} className="p-6">
                                     <div className="flex flex-col lg:flex-row gap-6">
-                                        {/* Teacher Info */}
                                         <div className="flex-shrink-0">
                                             <img
                                                 src={teacher.image}
@@ -175,29 +183,35 @@ export default function Teachers() {
                                         <div className="flex-1">
                                             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-4">
                                                 <div>
-                                                    <h3 className="text-xl font-semibold text-gray-900 mb-1">{teacher.name}</h3>
+                                                    <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                                                        {teacher.name}
+                                                    </h3>
                                                     <p className="text-secondary mb-2">{teacher.subject}</p>
                                                     <div className="flex items-center space-x-2">
                             <span className="text-2xl font-bold text-primary">
-                              {(teacher.averageRating / 10).toFixed(1)}
+                              {(safeAverage / 10).toFixed(1)}
                             </span>
                                                         <div className="flex items-center">
-                                                            {generateStarRating(teacher.averageRating)}
+                                                            {generateStarRating(safeAverage)}
                                                         </div>
-                                                        <span className="text-sm text-secondary">({teacher.totalRatings} reviews)</span>
+                                                        <span className="text-sm text-secondary">
+                              ({teacher.totalRatings} reviews)
+                            </span>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {/* Rating History Bar Graph */}
                                             <RatingHistory ratings={ratingHistory} />
 
-                                            {/* Rating Form */}
                                             <div className="border-t pt-4">
-                                                <h4 className="text-sm font-semibold text-gray-700 mb-3">Rate this teacher</h4>
+                                                <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                                                    Rate this teacher
+                                                </h4>
                                                 <div className="space-y-4">
                                                     <RatingSlider
-                                                        onRatingChange={(rating) => handleRatingChange(teacher.id, rating)}
+                                                        onRatingChange={(rating) =>
+                                                            handleRatingChange(teacher.id, rating)
+                                                        }
                                                         initialValue={currentRating}
                                                     />
 
@@ -208,7 +222,9 @@ export default function Teachers() {
                                                         <Textarea
                                                             rows={3}
                                                             value={currentComment}
-                                                            onChange={(e) => handleCommentChange(teacher.id, e.target.value)}
+                                                            onChange={(e) =>
+                                                                handleCommentChange(teacher.id, e.target.value)
+                                                            }
                                                             placeholder="Share your experience with this teacher..."
                                                             className="resize-none"
                                                         />
@@ -232,12 +248,12 @@ export default function Teachers() {
                 </div>
             </main>
 
-            {/* Footer */}
             <footer className="bg-white border-t mt-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="text-center">
                         <p className="text-secondary">
-                            &copy; 2024 Teacher Review BD. Empowering students through transparent teacher reviews.
+                            &copy; 2024 Teacher Review BD. Empowering students through transparent
+                            teacher reviews.
                         </p>
                     </div>
                 </div>
